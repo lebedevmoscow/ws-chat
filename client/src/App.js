@@ -1,25 +1,43 @@
-import logo from './logo.svg';
-import './App.css';
+// Redux
+import { useDispatch, useSelector } from 'react-redux'
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+// Action Types
+import {
+	setUserRegistered,
+	setUserTokenToLocalStorage,
+	setUserUnregistered,
+} from './actions/registered'
+
+// Utils
+import { isUserRegistered } from './utils/localstorage'
+import { useEffect } from 'react'
+
+// Components
+import RegisterModal from './Components/RegisterModal/RegisterModal'
+
+const App = () => {
+	// Redux base stuff
+	const dispatch = useDispatch()
+
+	// Data about either registered user or not
+	const registeredState = useSelector((state) => state.registered)
+	useEffect(() => {
+		const isRegistered = isUserRegistered()
+		if (!isRegistered) {
+			dispatch(setUserUnregistered())
+		} else {
+			dispatch(setUserRegistered())
+			dispatch(setUserTokenToLocalStorage(isRegistered))
+		}
+	}, [dispatch])
+
+	return (
+		<div className='app'>
+			{!registeredState.registered && !registeredState.user && (
+				<RegisterModal />
+			)}
+		</div>
+	)
 }
 
-export default App;
+export default App
