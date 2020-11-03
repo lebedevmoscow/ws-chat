@@ -1,12 +1,15 @@
 import React, { useEffect, useState, useRef } from 'react'
-import { Link, NavLink, Redirect } from 'react-router-dom'
-import openSocket, { Socket } from 'socket.io-client'
+import { Link, Redirect } from 'react-router-dom'
+import openSocket from 'socket.io-client'
 import { generateId } from './../../utils/randomid'
 
 import moment from 'moment'
 
 // Redux
 import { useSelector } from 'react-redux'
+
+// Open up socket for listeting
+const socket = openSocket('http://localhost:3001')
 
 const Chat = () => {
 	// Entered message
@@ -19,7 +22,6 @@ const Chat = () => {
 	})
 	const [users, setUsers] = useState([])
 
-	const socketRef = useRef()
 	const chatRef = useRef(null)
 
 	const user = useSelector((state) => state.user)
@@ -34,25 +36,19 @@ const Chat = () => {
 		socket.disconnect()
 	}
 
-	// Open up socket for listeting
-	const socket = openSocket('http://localhost:3001')
-
 	useEffect(() => {
 		// Notify server about connection
 		if (user.username) {
 			socket.emit('user_join_the_chat', { user })
 		}
-
 		// Get result from server
 		socket.on('connect_user_client_processed', ({ user, listusers }) => {
 			console.log('user', user)
 			console.log('A user', user.username, 'connected the chat')
-
 			// List of users
 			console.log('uesrs', listusers)
 			setUsers(listusers[user.room - 1])
 		})
-
 		// When users send message
 		socket.on('user_send_message_processed', ({ msg, time, username }) => {
 			console.log('msg', msg)
@@ -65,22 +61,21 @@ const Chat = () => {
 			setChat(prevchat)
 			console.log('new message: ', msg)
 		})
-
 		// If this is the same user
 		socket.on('send_list_of_users', (listusers) => {
 			setUsers(listusers)
 		})
-
 		// When users disconnect
 		socket.on('user_disconedted', ({ chatuser, listusers }) => {
 			console.log(chatuser, 'disconnected')
 			setUsers(listusers)
 		})
-
 		// Clean up
 		return () => {
 			socket.off('connect_user_client_processed')
-			socket.off('notify_about_message')
+			socket.off('user_send_message_processed')
+			socket.off('send_list_of_users')
+			socket.off('user_disconedted')
 		}
 	}, [user])
 
