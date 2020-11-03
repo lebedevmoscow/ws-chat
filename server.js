@@ -129,14 +129,16 @@ app.use(cors())
 app.use(express.json({ extended: false }))
 
 // Static files
-app.use(express.static(path.join(__dirname, 'client', 'public')))
+if (process.env.NODE_ENV === 'production') {
+	app.use(express.static('client/build'))
+}
 
 // Routes
 app.use('/api/register', require('./routes/api/register'))
 app.use('/api/user', require('./routes/api/user'))
 app.use('/api/login', require('./routes/api/login'))
 
-const PORT = 3001
+const PORT = process.env.PORT || 3001
 
 const init = async () => {
 	try {
