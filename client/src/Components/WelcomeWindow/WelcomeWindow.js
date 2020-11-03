@@ -55,7 +55,8 @@ const WelcomeWindow = ({ changeUserRoom }) => {
 	}
 
 	if (redirect) {
-		return <Redirect to='chat' />
+		console.log('redirect')
+		return <Redirect to='/chat' />
 	}
 
 	if (redirectLogout) {

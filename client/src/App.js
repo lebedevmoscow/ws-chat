@@ -1,5 +1,5 @@
 // Redux
-import { useDispatch, useSelector } from 'react-redux'
+import { useDispatch } from 'react-redux'
 
 // Actions
 import {
@@ -18,14 +18,12 @@ import Chat from './Components/Chat/Chat'
 import error404 from './Components/404/404'
 import LoginModal from './Components/LoginModal/LoginModal'
 
-import { Redirect, Route, Switch } from 'react-router-dom'
+import { Route, Switch } from 'react-router-dom'
 
 const App = () => {
 	// Redux base stuff
 	const dispatch = useDispatch()
 
-	// Data about either registered user or not
-	const registeredState = useSelector((state) => state.registered)
 	useEffect(() => {
 		const isRegistered = localStorage.getItem('user')
 		if (!isRegistered) {

@@ -9,7 +9,11 @@ import moment from 'moment'
 import { useSelector } from 'react-redux'
 
 // Open up socket for listeting
-const socket = openSocket('http://localhost:3001')
+let socket
+
+if (socket) {
+	console.log('dadada')
+} else console.log('netnetnet')
 
 const Chat = () => {
 	// Entered message
@@ -32,11 +36,10 @@ const Chat = () => {
 
 	const onLogOutHandler = (e) => {
 		e.preventDefault()
-		console.log('here')
 		socket.disconnect()
 	}
-
 	useEffect(() => {
+		socket = openSocket('http://localhost:3001')
 		// Notify server about connection
 		if (user.username) {
 			socket.emit('user_join_the_chat', { user })

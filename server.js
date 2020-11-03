@@ -9,6 +9,13 @@ const cors = require('cors')
 let listusers = [[]]
 let listids = [[]]
 
+setInterval(() => {
+	const room = io.sockets.adapter.rooms['room1']
+	if (room && room.length) {
+		console.log('length', room.length)
+	}
+}, 5000)
+
 io.on('connection', (client) => {
 	console.log('connect', client.id)
 	// Users join the chat
@@ -29,8 +36,6 @@ io.on('connection', (client) => {
 		client.join(roomname)
 
 		if (!listusers[user.room - 1].find((u) => u == user.username)) {
-			console.log('===== PREV USERS NOT FOUND')
-
 			if (!listusers[user.room - 1]) {
 				listusers[user.room - 1] = [user.username]
 			} else {
@@ -44,8 +49,6 @@ io.on('connection', (client) => {
 			}
 
 			chatuser = user
-			console.log('====== ALL USERS', listusers)
-			console.log('====== ALL IDS', listids)
 			// Send action to client
 			io.emit('connect_user_client_processed', { user, listusers })
 		} else {
@@ -62,14 +65,10 @@ io.on('connection', (client) => {
 		})
 	})
 
-	client.on('reconnect', () => {
-		console.log('reconnect')
-	})
-
-	client.on('disconnect', (args) => {
+	client.on('disconnect', () => {
 		// Get the username by client id
-		let userroomnumber
-		let indexinroom
+		let userroomnumber = -1
+		let indexinroom = -1
 		console.log('id', client.id)
 		// Go throught rooms
 		for (let i = 0; i < listids.length; i++) {
@@ -82,31 +81,44 @@ io.on('connection', (client) => {
 				}
 			}
 		}
-		// Get username by socketid
-		const usernameinroom = listids[userroomnumber][indexinroom]
-		console.log('A user', usernameinroom, 'disconnected')
-		const newlistusers = [[]]
-		const rooms = []
-		for (let i = 0; i < listusers.length; i++) {
-			if (i !== userroomnumber) {
-				// Push whole room
-				newlistusers.push(listusers[i])
-			} else {
-				const index = i
-				// listusers[i].length - amount of users in certain room
-				const usersinrooms = []
-				for (let j = 0; j < listusers[i].length; j++) {
-					if (usernameinroom !== listusers[i][j]) {
-						usersinrooms.push(listusers[i][j])
+
+		if (userroomnumber !== -1 && indexinroom !== -1) {
+			// Get username by socketid
+			const usernameinroom = listusers[userroomnumber][indexinroom]
+
+			const newlistids = [[]]
+			const newlistusers = [[]]
+			const rooms = []
+			const roomids = []
+
+			// Update userlist
+			for (let i = 0; i < listusers.length; i++) {
+				if (i !== userroomnumber) {
+					// Push whole room
+					newlistusers.push(listusers[i])
+					newlistids.push(listids[i])
+				} else {
+					const index = i
+					// listusers[i].length - amount of users in certain room
+					const usersinrooms = []
+					const idsinrooms = []
+					for (let j = 0; j < listusers[i].length; j++) {
+						if (usernameinroom !== listusers[i][j]) {
+							usersinrooms.push(listusers[i][j])
+						}
+						if (client.id !== listids[i][j]) {
+							idsinrooms.push(listids[i][j])
+						}
 					}
+					rooms[index] = usersinrooms
+					roomids[index] = idsinrooms
 				}
-				rooms[index] = usersinrooms
 			}
+
+			listusers = rooms
+			listids = roomids
+			io.emit('user_disconedted', { usernameinroom, listusers })
 		}
-		console.log('listusers', listusers)
-		listusers = rooms
-		console.log('rooms', rooms)
-		io.emit('user_disconedted', { usernameinroom, listusers })
 	})
 })
 
