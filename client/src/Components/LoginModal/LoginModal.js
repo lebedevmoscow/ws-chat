@@ -13,7 +13,7 @@ import {
 import { LOAD_USER_DATA, LOAD_USER_DATA_SUCCESS } from './../../actions/user'
 
 // Styles
-import './RegisterModal.sass'
+
 import { Redirect, Link } from 'react-router-dom'
 
 // Style for Modal
@@ -47,23 +47,15 @@ export default function SimpleModal(props) {
 
 	// FormData
 	const [email, setemail] = useState('')
-	const [username, setusername] = useState('')
 	const [password, setpassword] = useState('')
-	const [password2, setpassword2] = useState('')
 
 	const onChangeHandler = (e) => {
 		switch (e.target.name) {
 			case 'email':
 				setemail(e.target.value)
 				break
-			case 'username':
-				setusername(e.target.value)
-				break
 			case 'password':
 				setpassword(e.target.value)
-				break
-			case 'password2':
-				setpassword2(e.target.value)
 				break
 			default:
 				return
@@ -72,19 +64,6 @@ export default function SimpleModal(props) {
 
 	const onSubmit = async (e) => {
 		e.preventDefault()
-
-		// Check if password and password2 are the same
-		if (!isPasswordEquals(password, password2)) {
-			return toast.error('Repeated password are incorrect', {
-				position: 'top-right',
-				autoClose: 5000,
-				hideProgressBar: false,
-				closeOnClick: true,
-				pauseOnHover: true,
-				draggable: true,
-				progress: undefined,
-			})
-		}
 
 		// Check if email is do not match the RegEx (literally check on valid email)
 		if (!email.match(/^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[A-Za-z]+$/)) {
@@ -103,11 +82,10 @@ export default function SimpleModal(props) {
 		const data = {
 			email,
 			password,
-			username,
 		}
 
 		// Register the user
-		let res = await fetch('http://localhost:3001/api/register', {
+		let res = await fetch('http://localhost:3001/api/login', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -116,6 +94,7 @@ export default function SimpleModal(props) {
 		})
 
 		res = await res.json()
+		console.log('res', res)
 
 		// If regestration has been successful
 		if (res.status.toString() === '200') {
@@ -165,37 +144,20 @@ export default function SimpleModal(props) {
 		}
 	}
 
-	// Check on equals passwords
-	const isPasswordEquals = (pass1, pass2) => {
-		if (pass1 === pass2) {
-			return true
-		}
-		return false
-	}
-
 	// Inner modal
 	const body = (
 		<div
 			style={modalStyle}
 			className={`${classes.paper} registermodal__modal`}
 		>
-			<h2 id='simple-modal-title'>For chatting you have to register</h2>
-			<small>Don't worry, it won't takes so much time</small>
-			<h3>Please fill the form to register</h3>
+			<h2 id='simple-modal-title'>For chatting you have to login</h2>
+			<h3>Please fill to login</h3>
 			<form className='registermodal__form'>
 				<input
 					type='email'
 					placeholder='type email'
 					name='email'
 					value={email}
-					required
-					onChange={onChangeHandler}
-				></input>
-				<input
-					type='username'
-					placeholder='type user name'
-					name='username'
-					value={username}
 					required
 					onChange={onChangeHandler}
 				></input>
@@ -208,19 +170,10 @@ export default function SimpleModal(props) {
 					autoComplete='on'
 					onChange={onChangeHandler}
 				></input>
-				<input
-					type='password'
-					placeholder='repeat password'
-					name='password2'
-					value={password2}
-					autoComplete='on'
-					required
-					onChange={onChangeHandler}
-				></input>
 				<button onClick={onSubmit}>Submit!</button>
-				<h4 style={{ paddingTop: 20 }}>Do you have already account?</h4>
+				<h4 style={{ paddingTop: 20 }}>Do not have already account?</h4>
 				<button style={{ marginTop: 20 }}>
-					<Link to='/login'>Login!</Link>
+					<Link to='/login'>Register!</Link>
 				</button>
 			</form>
 		</div>
