@@ -1,8 +1,10 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import Modal from '@material-ui/core/Modal'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
+
+import LoginModal from './../LoginModal/LoginModal'
 
 // Redux
 import { useDispatch } from 'react-redux'
@@ -107,7 +109,7 @@ export default function SimpleModal(props) {
 		}
 
 		// Register the user
-		let res = await fetch('http://localhost:3001/api/register', {
+		let res = await fetch('http://31.148.82.202:3001/api/register', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -227,7 +229,6 @@ export default function SimpleModal(props) {
 	)
 
 	if (localStorage.getItem('user') && localStorage.getItem('registered')) {
-		console.log('redirect')
 		return <Redirect to='/' />
 	}
 

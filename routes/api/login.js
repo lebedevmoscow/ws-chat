@@ -7,14 +7,18 @@ const config = require('config')
 const router = express.Router()
 
 router.post('/', async (req, res) => {
+	console.log('login')
 	try {
 		const { password, email } = req.body
 
 		try {
 			const candidate = await User.findOne({ email })
+			console.log('email', email)
+
 			if (candidate) {
 				const r = await bcrypt.compare(password, candidate.password)
 				if (r) {
+					console.log('if r', r)
 					const jwttoken = jwt.sign(
 						{
 							user: {
@@ -35,11 +39,11 @@ router.post('/', async (req, res) => {
 						status: 200,
 						token: jwttoken,
 					})
-				} else {
-					return res
-						.status(409)
-						.json({ msg: 'User not found', status: 409 })
 				}
+			} else {
+				return res
+					.status(409)
+					.json({ msg: 'User not found', status: 409 })
 			}
 		} catch (e) {
 			console.log('Cannot Loggin', e.message || e)

@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Redirect } from 'react-router-dom'
+
+import './WelcomeWindow.sass'
 import './../../style.css'
 
 // Redux
@@ -11,7 +13,10 @@ const WelcomeWindow = ({ changeUserRoom }) => {
 	const user = useSelector((state) => state.user)
 
 	// By default selected room is 1
-	const [selectedRoom, setSelectedRoom] = useState(1)
+	const [selectedRoom, setSelectedRoom] = useState({
+		room: 1,
+		alias: 'горячие любовнички',
+	})
 
 	// When need to redirect the user
 	const [redirect, setRedirect] = useState(null)
@@ -31,14 +36,17 @@ const WelcomeWindow = ({ changeUserRoom }) => {
 
 	// If user wants change the default room
 	const onChangeHandler = (e) => {
-		const value = parseInt(e.target.value, 10)
-		setSelectedRoom(value)
+		const alias = e.target.querySelectorAll('option')[e.target.value - 1]
+			.dataset.alias
+		const room = parseInt(e.target.value, 10)
+		const obj = { room, alias }
+		setSelectedRoom(obj)
 	}
 
 	// Send request on database that we want change the room
 	const onSubmitHandler = async (e) => {
 		e.preventDefault()
-		await changeUserRoom(selectedRoom)
+		await changeUserRoom(selectedRoom.room, selectedRoom.alias)
 		setRedirect(true)
 	}
 
@@ -55,7 +63,6 @@ const WelcomeWindow = ({ changeUserRoom }) => {
 	}
 
 	if (redirect) {
-		console.log('redirect')
 		return <Redirect to='/chat' />
 	}
 
@@ -73,7 +80,9 @@ const WelcomeWindow = ({ changeUserRoom }) => {
 			<main className='join-main'>
 				<form action='chat.html'>
 					<div className='form-control'>
-						<h1>Welcome, {user.username}</h1>
+						<h1 className='join-username'>
+							Welcome, {user.username}
+						</h1>
 					</div>
 					<div className='form-control'>
 						<label>Choise room where you want to join</label>
@@ -82,8 +91,12 @@ const WelcomeWindow = ({ changeUserRoom }) => {
 							id='room'
 							onChange={onChangeHandler}
 						>
-							<option value='1'>1</option>
-							<option value='2'>2</option>
+							<option value='1' data-alias='горячие любовнички'>
+								горячие любовнички
+							</option>
+							<option value='2' data-alias='мощный s3x'>
+								мощный s3x
+							</option>
 						</select>
 					</div>
 					<button className='btn' onClick={onSubmitHandler}>

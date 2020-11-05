@@ -9,7 +9,7 @@ import {
 } from './actions/registered'
 import { loadUserData } from './actions/user'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 // Components
 import RegisterModal from './Components/RegisterModal/RegisterModal'
@@ -18,7 +18,7 @@ import Chat from './Components/Chat/Chat'
 import error404 from './Components/404/404'
 import LoginModal from './Components/LoginModal/LoginModal'
 
-import { Route, Switch } from 'react-router-dom'
+import { Route, Switch, Redirect } from 'react-router-dom'
 
 const App = () => {
 	// Redux base stuff
@@ -33,22 +33,17 @@ const App = () => {
 			dispatch(setUserTokenToLocalStorage(isRegistered))
 			dispatch(loadUserData())
 		}
-	}, [dispatch])
-
-	// if (!localStorage.getItem('user')) {
-	// 	return <Redirect to='/register' />
-	// }
+	}, [])
 
 	return (
-		<div className='app'>
-			<Switch>
-				<Route exact path='/register' component={RegisterModal} />
-				<Route exact path='/login' component={LoginModal} />
-				<Route exact path='/' component={WelcomeWindow} />
-				<Route exact path='/chat' component={Chat} />
-				<Route component={error404} />
-			</Switch>
-		</div>
+		<Switch>
+			<Route exact path='/register' component={RegisterModal} />
+			<Route exact path='/login' component={LoginModal} />
+			<Route exact path='/chat' component={Chat} />
+			<Route exact path='/' component={WelcomeWindow} />
+			<Route component={error404} />
+			{!localStorage.getItem('user') ? <Redirect to='/register' /> : null}
+		</Switch>
 	)
 }
 

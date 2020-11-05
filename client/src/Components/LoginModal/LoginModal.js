@@ -12,6 +12,8 @@ import {
 } from './../../actions/registered'
 import { LOAD_USER_DATA, LOAD_USER_DATA_SUCCESS } from './../../actions/user'
 
+import { SERVER_BASE_URL } from './../../config'
+
 // Styles
 
 import { Redirect, Link } from 'react-router-dom'
@@ -44,6 +46,7 @@ export default function SimpleModal(props) {
 	const classes = useStyles()
 	const [modalStyle] = React.useState(getModalStyle)
 	const [open] = React.useState(true)
+	const [redirect, setRedirect] = React.useState(false)
 
 	// FormData
 	const [email, setemail] = useState('')
@@ -85,7 +88,7 @@ export default function SimpleModal(props) {
 		}
 
 		// Register the user
-		let res = await fetch('http://localhost:3001/api/login', {
+		let res = await fetch(`${SERVER_BASE_URL}/api/login`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -94,16 +97,17 @@ export default function SimpleModal(props) {
 		})
 
 		res = await res.json()
-		console.log('res', res)
 
-		// If regestration has been successful
-		if (res.status.toString() === '200') {
+		// If login has been successful
+		if (res.status === 200) {
 			dispatch(setUserRegistered())
 			dispatch(setUserTokenToLocalStorage(res.token))
 
 			const user = { user: res.user }
 			dispatch({ type: LOAD_USER_DATA })
 			dispatch({ type: LOAD_USER_DATA_SUCCESS, payload: user })
+
+			setRedirect(true)
 
 			return toast.success(res.msg, {
 				position: 'top-right',
@@ -181,6 +185,10 @@ export default function SimpleModal(props) {
 
 	if (localStorage.getItem('user') && localStorage.getItem('registered')) {
 		console.log('redirect')
+		return <Redirect to='/' />
+	}
+
+	if (redirect) {
 		return <Redirect to='/' />
 	}
 

@@ -9,9 +9,10 @@ const initialState = {
 	username: null,
 	email: null,
 	hashedPassword: null,
-	loading: false,
+	loading: true,
 	error: null,
 	room: null,
+	roomalias: null,
 }
 
 const user = (state = initialState, action) => {
@@ -30,6 +31,7 @@ const user = (state = initialState, action) => {
 				username: action.payload.user.username,
 				hashedPassword: action.payload.user.password,
 				room: action.payload.user.room,
+				roomalias: action.payload.user.roomalias,
 			}
 		case LOAD_USER_DATA_FAIL:
 			return {
@@ -39,11 +41,13 @@ const user = (state = initialState, action) => {
 				username: null,
 				hashedPassword: null,
 				room: null,
+				roomalias: null,
 			}
 		case USER_CHOISE_ROOM:
 			return {
 				...state,
-				room: action.payload,
+				room: action.payload.room,
+				roomalias: action.payload.roomalias,
 			}
 		default:
 			return state

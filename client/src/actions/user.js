@@ -1,3 +1,5 @@
+import { SERVER_BASE_URL } from './../config'
+
 // Action types
 export const LOAD_USER_DATA = 'LOAD_USER_DATA'
 export const LOAD_USER_DATA_SUCCESS = 'LOAD_USER_DATA_SUCCESS'
@@ -15,7 +17,7 @@ export const loadUserData = () => async (dispatch) => {
 	let data
 	try {
 		// Loading user data from server
-		const req = await fetch('http://localhost:3001/api/user', {
+		const req = await fetch(`${SERVER_BASE_URL}/api/user`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -40,20 +42,22 @@ export const loadUserData = () => async (dispatch) => {
 
 // If user want to change the room we'll gonna
 // mark this action in database (change the "room" record)
-export const changeUserRoom = (room) => async (dispatch) => {
+export const changeUserRoom = (room, alias) => async (dispatch) => {
 	const token = localStorage.getItem('user')
 	try {
-		await fetch('http://localhost:3001/api/user/changeroom', {
+		await fetch(`${SERVER_BASE_URL}/api/user/changeroom`, {
 			headers: {
 				'Content-Type': 'application/json',
 				'x-auth-token': token,
 			},
 			method: 'POST',
-			body: JSON.stringify({ room: room }),
+			body: JSON.stringify({ room: room, alias: alias }),
 		})
 
-		console.log('change room')
-		return dispatch({ type: USER_CHOISE_ROOM, payload: room })
+		return dispatch({
+			type: USER_CHOISE_ROOM,
+			payload: { room, roomalias: alias },
+		})
 	} catch (e) {
 		console.log('Cannot Update User Room', e.message || e)
 	}

@@ -16,10 +16,12 @@ router.post('/', auth, async (req, res) => {
 })
 
 router.post('/changeroom', auth, async (req, res) => {
+	console.log('changing room', req.body.room, req.body.alias)
 	try {
 		const user = req.user
 		await User.findOneAndUpdate(user.user_id, {
 			room: req.body.room,
+			roomalias: req.body.alias,
 		})
 		return res.status(200).json({ msg: 'OK' })
 	} catch (e) {

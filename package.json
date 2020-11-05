@@ -4,14 +4,15 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "nodemon server.js",
     "build": "cd client && npm run build",
     "install-client": "cd client && npm install",
     "nodemon": "nodemon server.js",
     "client": "cd client && npm run start",
     "heroku-postbuild": "npm run install-client && npm run build",
     "concurrently": "concurrently \"node server.js\" \"npm run start --prefix client\"",
-    "cleardatabase": "node scripts/populatedatabase.js"
+    "cleardatabase": "node scripts/populatedatabase.js",
+    "clearhistory": "node scripts/clearhistory.js"
   },
   "author": "",
   "license": "ISC",

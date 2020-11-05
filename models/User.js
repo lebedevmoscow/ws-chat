@@ -16,6 +16,9 @@ const userSchema = mongoose.Schema({
 	room: {
 		type: Number,
 	},
+	roomalias: {
+		type: String | Number,
+	},
 })
 
 module.exports = User = mongoose.model('user', userSchema)

@@ -1,25 +1,17 @@
 const express = require('express')
 const app = express()
-const path = require('path')
 const server = require('http').createServer(app)
 const connectToDatabase = require('./config/database')
 const io = require('socket.io')(server)
 const cors = require('cors')
+const moment = require('moment')
 
 let listusers = [[]]
 let listids = [[]]
 
-setInterval(() => {
-	const room = io.sockets.adapter.rooms['room1']
-	if (room && room.length) {
-		console.log('length', room.length)
-	}
-}, 5000)
-
 io.on('connection', (client) => {
-	console.log('connect', client.id)
 	// Users join the chat
-	client.on('user_join_the_chat', ({ user }) => {
+	client.on('user_join_the_chat', ({ user, time }) => {
 		// Create empty room is itself is not defined
 		if (!listusers[user.room - 1]) {
 			listusers[user.room - 1] = []
@@ -28,7 +20,7 @@ io.on('connection', (client) => {
 			listids[user.room - 1] = []
 		}
 
-		// Notify abouut it in the console
+		// Notify about it in the console
 		console.log('A user', user.username, 'connected to room', user.room)
 
 		// Put this user in his room
@@ -49,19 +41,27 @@ io.on('connection', (client) => {
 			}
 
 			chatuser = user
+
+			const lst = listusers[user.room - 1]
 			// Send action to client
-			io.emit('connect_user_client_processed', { user, listusers })
+			io.emit('connect_user_client_processed', {
+				u: user,
+				lst,
+				room: user.room,
+				time,
+			})
 		} else {
-			io.emit('send_list_of_users', listusers)
+			io.emit('send_list_of_users', listusers[user.room - 1])
 		}
 	})
 
-	client.on('user_send_mesage', ({ msg, time, username }) => {
+	client.on('user_send_mesage', ({ msg, time, username, room }) => {
 		console.log('id sent message', client.id)
 		io.emit('user_send_message_processed', {
 			msg,
 			time,
 			username,
+			room,
 		})
 	})
 
@@ -69,7 +69,6 @@ io.on('connection', (client) => {
 		// Get the username by client id
 		let userroomnumber = -1
 		let indexinroom = -1
-		console.log('id', client.id)
 		// Go throught rooms
 		for (let i = 0; i < listids.length; i++) {
 			// Go throuth users in this room
@@ -117,7 +116,18 @@ io.on('connection', (client) => {
 
 			listusers = rooms
 			listids = roomids
-			io.emit('user_disconedted', { usernameinroom, listusers })
+
+			const lst = listusers[userroomnumber]
+
+			console.log(usernameinroom, 'disconnected')
+
+			const time = moment().format('lll')
+			io.emit('user_disconedted', {
+				usernameinroom,
+				lst,
+				time,
+				room: userroomnumber + 1,
+			})
 		}
 	})
 })
@@ -137,8 +147,9 @@ if (process.env.NODE_ENV === 'production') {
 app.use('/api/register', require('./routes/api/register'))
 app.use('/api/user', require('./routes/api/user'))
 app.use('/api/login', require('./routes/api/login'))
+app.use('/api/chat', require('./routes/api/chat'))
 
-const PORT = process.env.PORT || 3001
+const PORT = 3001
 
 const init = async () => {
 	try {
