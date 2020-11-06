@@ -9,7 +9,7 @@ const initialState = {
 	username: null,
 	email: null,
 	hashedPassword: null,
-	loading: true,
+	loading: false,
 	error: null,
 	room: null,
 	roomalias: null,

@@ -87,17 +87,19 @@ io.on('connection', (client) => {
 
 			const newlistids = [[]]
 			const newlistusers = [[]]
-			const rooms = []
-			const roomids = []
+
+			// I know this is fucking magic code and it can be write a lot of better =/
 
 			// Update userlist
 			for (let i = 0; i < listusers.length; i++) {
 				if (i !== userroomnumber) {
 					// Push whole room
-					newlistusers.push(listusers[i])
-					newlistids.push(listids[i])
+					const acpy1 = listusers[i].concat()
+					const acpy2 = listids[i].concat()
+
+					newlistusers[i] = acpy1
+					newlistids[i] = acpy2
 				} else {
-					const index = i
 					// listusers[i].length - amount of users in certain room
 					const usersinrooms = []
 					const idsinrooms = []
@@ -109,13 +111,13 @@ io.on('connection', (client) => {
 							idsinrooms.push(listids[i][j])
 						}
 					}
-					rooms[index] = usersinrooms
-					roomids[index] = idsinrooms
+					newlistusers[i] = usersinrooms
+					newlistids[i] = idsinrooms
 				}
 			}
 
-			listusers = rooms
-			listids = roomids
+			listusers = newlistusers
+			listids = newlistids
 
 			const lst = listusers[userroomnumber]
 

@@ -58,16 +58,16 @@ const WelcomeWindow = ({ changeUserRoom }) => {
 		setRedirectLogOut(true)
 	}
 
-	if (!localStorage.getItem('user') && !localStorage.getItem('registered')) {
-		return <Redirect to='/register' />
-	}
-
 	if (redirect) {
 		return <Redirect to='/chat' />
 	}
 
 	if (redirectLogout) {
 		return <Redirect to='/' />
+	}
+
+	if (!localStorage.getItem('user') && !localStorage.getItem('registered')) {
+		return <Redirect to='/register' />
 	}
 
 	return (

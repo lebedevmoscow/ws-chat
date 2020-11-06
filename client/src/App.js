@@ -36,14 +36,15 @@ const App = () => {
 	}, [])
 
 	return (
-		<Switch>
-			<Route exact path='/register' component={RegisterModal} />
-			<Route exact path='/login' component={LoginModal} />
-			<Route exact path='/chat' component={Chat} />
-			<Route exact path='/' component={WelcomeWindow} />
-			<Route component={error404} />
-			{!localStorage.getItem('user') ? <Redirect to='/register' /> : null}
-		</Switch>
+		<>
+			<Switch>
+				<Route exact path='/register' component={RegisterModal} />
+				<Route exact path='/login' component={LoginModal} />
+				<Route exact path='/chat' component={Chat} />
+				<Route exact path='/' component={WelcomeWindow} />
+				<Route component={error404} />
+			</Switch>
+		</>
 	)
 }
 

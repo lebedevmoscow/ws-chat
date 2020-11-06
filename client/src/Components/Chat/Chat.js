@@ -117,11 +117,6 @@ const Chat = ({ loadHistory, sendMessage, chat, user }) => {
 						prevchat.message.push(
 							`A user ${u.username} connected the chat`
 						)
-						// await sendMessage(
-						// 	`A user ${user.username} connected the chat`,
-						// 	user.room,
-						// 	user.username
-						// )
 						setChatHistory(prevchat)
 
 						// List of users
@@ -141,11 +136,6 @@ const Chat = ({ loadHistory, sendMessage, chat, user }) => {
 						prevchat.message.push(
 							`A user ${usernameinroom} disconnected the chat`
 						)
-						// await sendMessage(
-						// 	`A user ${user.username} disconnected the chat`,
-						// 	user.room,
-						// 	user.username
-						// )
 						setUsers(lst)
 					}
 				}
