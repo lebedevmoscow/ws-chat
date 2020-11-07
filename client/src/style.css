@@ -120,6 +120,18 @@ a {
 	border-radius: 5px;
 	border: 1px solid rgb(194, 194, 194);
 	overflow-wrap: break-word;
+	position: relative;
+}
+
+.edited h6 {
+	position: absolute;
+	top: 10px;
+	font-size: 14px;
+	right: 20px
+}
+
+.non-edited h6 {
+	display: none
 }
 
 .chat-messages .message .meta {

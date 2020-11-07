@@ -6,6 +6,7 @@ import { SERVER_BASE_URL } from './../../config'
 import moment from 'moment'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
+import { Modal } from '@material-ui/core'
 
 // Font Awesome
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -13,29 +14,50 @@ import { faPen, faTrash } from '@fortawesome/free-solid-svg-icons'
 
 // Redux
 import { connect } from 'react-redux'
-import { loadHistory, sendMessage, removeMessage } from './../../actions/chat'
+import {
+	loadHistory,
+	sendMessage,
+	removeMessage,
+	editMessage,
+} from './../../actions/chat'
 
 import './Chat.sass'
 
 // Open up socket for listeting
 let socket
 
-const Chat = ({ loadHistory, sendMessage, removeMessage, chat, user }) => {
+const Chat = ({
+	loadHistory,
+	sendMessage,
+	removeMessage,
+	editMessage,
+	chat,
+	user,
+}) => {
 	// Entered message
 	const [msg, setMsg] = useState('')
+	const [openmodal, setOpenmodal] = useState(false)
+	const [editmodal, setEditmodal] = useState(null)
+	const [idforedit, setIdforedit] = useState(null)
 
 	const [chatHistory, setChatHistory] = useState({
 		message: [],
 		user: [],
 		time: [],
 		id: [],
+		system: [],
+		edited: [],
 	})
 	const [users, setUsers] = useState([])
 	const chatRef = useRef(null)
 
 	// Handlers
-	const onDeleteMessageHandler = (id) => {
-		if (!id) {
+	const onEditMessageChangeHandler = (e) => {
+		setEditmodal(e.target.value)
+	}
+
+	const onDeleteMessageHandler = (id, system) => {
+		if (system) {
 			return toast.error(
 				'You cannot delete notification about connect / disconnect',
 				{
@@ -69,6 +91,36 @@ const Chat = ({ loadHistory, sendMessage, removeMessage, chat, user }) => {
 			}
 		}
 	}
+	const editMsg = async (id) => {
+		await editMessage(id, editmodal)
+		socket.emit('user_edited_message', {
+			username: user.username,
+			id,
+			message: editmodal,
+		})
+		console.log('da')
+		setOpenmodal((prev) => !prev)
+	}
+
+	const onEditMessageHandler = (e, message, id, system) => {
+		if (system) {
+			return toast.error(
+				'You cannot edit notification about connect / disconnect',
+				{
+					position: 'top-right',
+					autoClose: 3000,
+					hideProgressBar: false,
+					closeOnClick: true,
+					pauseOnHover: true,
+					draggable: true,
+					progress: undefined,
+				}
+			)
+		}
+		setIdforedit(id)
+		setEditmodal(message)
+		setOpenmodal((prev) => !prev)
+	}
 
 	const onChangeHandler = (e) => {
 		e.preventDefault()
@@ -85,6 +137,8 @@ const Chat = ({ loadHistory, sendMessage, removeMessage, chat, user }) => {
 		if (msg === '') return
 		setMsg('')
 		const time = moment().format('lll')
+
+		// Get the payload of action
 		const r = await sendMessage(msg, user.room, user.username)
 		const id = r.response.id
 		socket.emit('user_send_mesage', {
@@ -119,7 +173,14 @@ const Chat = ({ loadHistory, sendMessage, removeMessage, chat, user }) => {
 	})
 
 	useEffect(() => {
-		const arrayofmessages = { message: [], user: [], time: [], id: [] }
+		const arrayofmessages = {
+			message: [],
+			user: [],
+			time: [],
+			id: [],
+			system: [],
+			edited: [],
+		}
 
 		// Load chat history
 		if (!chat.loadinghistory) {
@@ -127,12 +188,17 @@ const Chat = ({ loadHistory, sendMessage, removeMessage, chat, user }) => {
 				const msg = m.messages.message[0].message
 				const u = m.messages.message[0].user
 				const t = m.messages.message[0].time
+				const s = m.messages.message[0].system
+				const e = m.messages.message[0].edited
+
 				const id = m._id
 
 				arrayofmessages.message[i] = msg
 				arrayofmessages.user[i] = u
 				arrayofmessages.time[i] = t
+				arrayofmessages.system[i] = s
 				arrayofmessages.id[i] = id
+				arrayofmessages.edited[i] = e
 			})
 
 			// Push as the last elements message about user connection
@@ -142,6 +208,8 @@ const Chat = ({ loadHistory, sendMessage, removeMessage, chat, user }) => {
 					arrayofmessages.message.push(chatHistory.message[i])
 					arrayofmessages.user.push(chatHistory.user[i])
 					arrayofmessages.time.push(chatHistory.time[i])
+					arrayofmessages.system.push(chatHistory.system[i])
+					arrayofmessages.edited.push(chatHistory.edited[i])
 				}
 			}
 		}
@@ -152,22 +220,37 @@ const Chat = ({ loadHistory, sendMessage, removeMessage, chat, user }) => {
 		if (socket) {
 			socket.on(
 				'connect_user_client_processed',
-				async ({ u, lst, room, time }) => {
+				async ({ u, lst, room, time, system }) => {
 					if (room === user.room) {
 						console.log('A user', u.username, 'connected the chat')
-						const prevchat = { ...chatHistory }
 
-						console.log('==PREV', prevchat)
+						setUsers(lst)
+						if (user.username !== u.username) {
+							toast.success(
+								`A ${user.username} connected the chat`,
+								{
+									position: 'top-right',
+									autoClose: 2000,
+									hideProgressBar: false,
+									closeOnClick: true,
+									pauseOnHover: true,
+									draggable: true,
+									progress: undefined,
+								}
+							)
+						}
 
-						prevchat.user.push(u.username)
-						prevchat.time.push(time)
-						prevchat.message.push(
-							`A user ${u.username} connected the chat`
-						)
-						setChatHistory(prevchat)
+						// const prevchat = { ...chatHistory }
+						// prevchat.user.push(u.username)
+						// prevchat.time.push(time)
+						// prevchat.message.push(
+						// 	`A user ${u.username} connected the chat`
+						// )
+						// prevchat.system.push(system)
+						// prevchat.edited.push(false)
+						// setChatHistory(prevchat)
 
 						// List of users
-						setUsers(lst)
 					}
 				}
 			)
@@ -177,12 +260,29 @@ const Chat = ({ loadHistory, sendMessage, removeMessage, chat, user }) => {
 				'user_disconedted',
 				async ({ usernameinroom, lst, time, room }) => {
 					if (user.room === room) {
-						const prevchat = { ...chatHistory }
-						prevchat.user.push(usernameinroom)
-						prevchat.time.push(time)
-						prevchat.message.push(
-							`A user ${usernameinroom} disconnected the chat`
-						)
+						if (usernameinroom !== user.username) {
+							toast.error(
+								`A ${usernameinroom} disconneted the chat`,
+								{
+									position: 'top-right',
+									autoClose: 2000,
+									hideProgressBar: false,
+									closeOnClick: true,
+									pauseOnHover: true,
+									draggable: true,
+									progress: undefined,
+								}
+							)
+						}
+
+						// const prevchat = { ...chatHistory }
+						// prevchat.user.push(usernameinroom)
+						// prevchat.time.push(time)
+						// prevchat.message.push(
+						// 	`A user ${usernameinroom} disconnected the chat`
+						// )
+						// prevchat.system.push(false)
+						// prevchat.edited.push(false)
 						setUsers(lst)
 					}
 				}
@@ -199,20 +299,89 @@ const Chat = ({ loadHistory, sendMessage, removeMessage, chat, user }) => {
 						prevchat.time.push(time)
 						prevchat.message.push(msg)
 						prevchat.id.push(id)
+						prevchat.system.push(false)
+						prevchat.edited.push(false)
 						setChatHistory(prevchat)
 					}
 				}
 			)
+
+			socket.on(
+				'user_edited_message_processed',
+				({ username, id, message }) => {
+					console.log('chat', chatHistory.message)
+					const chatHistoryIdCopy = chatHistory.id.concat()
+					const chatHistoryTimeCopy = chatHistory.time.concat()
+					const chatHistoryMessageCopy = chatHistory.message.concat()
+					const chatHistoryUserCopy = chatHistory.user.concat()
+					const chatHistorySystemCopy = chatHistory.system.concat()
+					const chatHistoryEditedCopy = chatHistory.edited.concat()
+
+					const newchatHistoryIdCopy = []
+					const newchatHistoryTimeCopy = []
+					const newchatHistoryMessageCopy = []
+					const newchatHistoryUserCopy = []
+					const newchatHistorySystemCopy = []
+					const newchatHistoryEditedCopy = []
+
+					for (let i = 0; i < chatHistoryIdCopy.length; i++) {
+						if (chatHistoryIdCopy[i] !== id) {
+							newchatHistoryIdCopy.push(chatHistoryIdCopy[i])
+							newchatHistoryTimeCopy.push(chatHistoryTimeCopy[i])
+							newchatHistoryMessageCopy.push(
+								chatHistoryMessageCopy[i]
+							)
+							newchatHistoryUserCopy.push(chatHistoryUserCopy[i])
+							newchatHistorySystemCopy.push(
+								chatHistorySystemCopy[i]
+							)
+							newchatHistoryEditedCopy.push(
+								chatHistoryEditedCopy[i]
+							)
+						} else {
+							newchatHistoryIdCopy.push(chatHistoryIdCopy[i])
+							newchatHistoryTimeCopy.push(chatHistoryTimeCopy[i])
+							newchatHistoryMessageCopy.push(message)
+							newchatHistoryUserCopy.push(chatHistoryUserCopy[i])
+							newchatHistorySystemCopy.push(
+								chatHistorySystemCopy[i]
+							)
+							newchatHistoryEditedCopy.push(true)
+						}
+					}
+
+					const newChat = {
+						message: newchatHistoryMessageCopy,
+						user: newchatHistoryUserCopy,
+						time: newchatHistoryTimeCopy,
+						id: newchatHistoryIdCopy,
+						system: newchatHistorySystemCopy,
+						edited: newchatHistoryEditedCopy,
+					}
+
+					setChatHistory(newChat)
+				}
+			)
+
 			socket.on('user_delete_message_processed', ({ username, id }) => {
+				// It could be not best example of code but it works
+				// To be honest i made this piece of shit just for
+				// avoid unnecessary mutations (if it works like i think)
+
+				// Create a new copy of chat
 				const chatHistoryIdCopy = chatHistory.id.concat()
 				const chatHistoryTimeCopy = chatHistory.time.concat()
 				const chatHistoryMessageCopy = chatHistory.message.concat()
 				const chatHistoryUserCopy = chatHistory.user.concat()
+				const chatHistorySystemCopy = chatHistory.system.concat()
+				const chatHistoryEditedCopy = chatHistory.edited.concat()
 
 				const newchatHistoryIdCopy = []
 				const newchatHistoryTimeCopy = []
 				const newchatHistoryMessageCopy = []
 				const newchatHistoryUserCopy = []
+				const newchatHistorySystemCopy = []
+				const newchatHistoryEditedCopy = []
 
 				for (let i = 0; i < chatHistoryIdCopy.length; i++) {
 					if (chatHistoryIdCopy[i] !== id) {
@@ -222,6 +391,8 @@ const Chat = ({ loadHistory, sendMessage, removeMessage, chat, user }) => {
 							chatHistoryMessageCopy[i]
 						)
 						newchatHistoryUserCopy.push(chatHistoryUserCopy[i])
+						newchatHistorySystemCopy.push(chatHistorySystemCopy[i])
+						newchatHistoryEditedCopy.push(chatHistoryEditedCopy[i])
 					}
 				}
 				console.log('chatHistoryMessageCopy', chatHistoryMessageCopy)
@@ -234,6 +405,8 @@ const Chat = ({ loadHistory, sendMessage, removeMessage, chat, user }) => {
 					user: newchatHistoryUserCopy,
 					time: newchatHistoryTimeCopy,
 					id: newchatHistoryIdCopy,
+					system: newchatHistorySystemCopy,
+					edited: newchatHistoryEditedCopy,
 				}
 
 				console.log('newChat', newChat)
@@ -252,6 +425,7 @@ const Chat = ({ loadHistory, sendMessage, removeMessage, chat, user }) => {
 			socket.off('user_send_message_processed')
 			socket.off('send_list_of_users')
 			socket.off('user_delete_message_processed')
+			socket.off('user_edited_message_processed')
 			socket.off('user_disconedted')
 		}
 	})
@@ -270,6 +444,35 @@ const Chat = ({ loadHistory, sendMessage, removeMessage, chat, user }) => {
 	if (chat.loadinghistory) {
 		return <h1>Loading...</h1>
 	}
+
+	const modalbody = (
+		<div className='editmodal'>
+			<h2 id='simple-modal-title'>Message Editing </h2>
+			<p className='editmodal__username'>
+				<span>твоя улиточка</span> - Nov 7, 2020 4:57 PM
+			</p>
+			<textarea
+				value={editmodal}
+				onChange={onEditMessageChangeHandler}
+			></textarea>
+			<div className='editmodal__buttons'>
+				<button
+					className='btn btn-edit'
+					onClick={() => {
+						editMsg(idforedit, editmodal)
+					}}
+				>
+					Edit
+				</button>
+				<button
+					className='btn cancel-edit'
+					onClick={() => setOpenmodal(false)}
+				>
+					Cancel
+				</button>
+			</div>
+		</div>
+	)
 
 	return (
 		<>
@@ -306,18 +509,22 @@ const Chat = ({ loadHistory, sendMessage, removeMessage, chat, user }) => {
 							chatHistory.message &&
 							chatHistory.message.map((m, i) => {
 								const id = chatHistory.id[i]
+								const system = chatHistory.system[i]
+								const edited = chatHistory.edited[i]
 								let classes = 'stranger-message'
-								let target
+
 								if (user.username === chatHistory.user[i]) {
 									classes = 'mine-message'
 								}
+								edited
+									? (classes += ' edited')
+									: (classes += ' non-edited')
 								return (
 									<div
 										className={`message ${classes}`}
 										key={id}
 										data-id={id}
 										onClick={(e) => {
-											target = e
 											onMessageClickHandler(e, id)
 										}}
 									>
@@ -329,6 +536,14 @@ const Chat = ({ loadHistory, sendMessage, removeMessage, chat, user }) => {
 												<li>
 													<FontAwesomeIcon
 														icon={faPen}
+														onClick={(e) =>
+															onEditMessageHandler(
+																e,
+																m,
+																id,
+																system
+															)
+														}
 													/>
 												</li>
 												<li>
@@ -336,7 +551,8 @@ const Chat = ({ loadHistory, sendMessage, removeMessage, chat, user }) => {
 														icon={faTrash}
 														onClick={() =>
 															onDeleteMessageHandler(
-																id
+																id,
+																system
 															)
 														}
 													/>
@@ -348,6 +564,7 @@ const Chat = ({ loadHistory, sendMessage, removeMessage, chat, user }) => {
 											{chatHistory.time[i]}
 										</p>
 										<p className='text'>{m}</p>
+										<h6>Edited</h6>
 									</div>
 								)
 							})}
@@ -377,6 +594,14 @@ const Chat = ({ loadHistory, sendMessage, removeMessage, chat, user }) => {
 				</div>
 			</div>
 			<ToastContainer />
+			<Modal
+				open={openmodal}
+				onClose={onEditMessageHandler}
+				aria-labelledby='simple-modal-title'
+				aria-describedby='simple-modal-description'
+			>
+				{modalbody}
+			</Modal>
 		</>
 	)
 }
@@ -391,4 +616,5 @@ export default connect(mapStateToProps, {
 	sendMessage,
 	loadHistory,
 	removeMessage,
+	editMessage,
 })(Chat)

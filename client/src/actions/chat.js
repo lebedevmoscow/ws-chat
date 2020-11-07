@@ -12,6 +12,10 @@ export const USER_DELETING_MESSAGE = 'USER_DELETING_MESSAGE'
 export const USER_DELETING_MESSAGE_SUCCESS = 'USER_DELETING_MESSAGE_SUCCESS'
 export const USER_DELETING_MESSAGE_FAIL = 'USER_DELETING_MESSAGE_FAIL'
 
+export const USER_EDITING_MESSAGE = 'USER_EDITING_MESSAGE'
+export const USER_EDITING_MESSAGE_SUCCESS = 'USER_EDITING_MESSAGE_SUCCESS'
+export const USER_EDITING_MESSAGE_FAIL = 'USER_EDITING_MESSAGE_FAIL'
+
 export const sendMessage = (msg, room, username) => {
 	return async (dispatch) => {
 		try {
@@ -61,7 +65,6 @@ export const removeMessage = (id) => {
 	return async (dispatch) => {
 		dispatch({ type: USER_DELETING_MESSAGE })
 		try {
-			console.log('req')
 			const req = await fetch(
 				`${SERVER_BASE_URL}/api/chat/deletemessage`,
 				{
@@ -74,11 +77,33 @@ export const removeMessage = (id) => {
 				}
 			)
 			const res = await req.json()
-			console.log('res', res)
 			dispatch({ type: USER_DELETING_MESSAGE_SUCCESS, payload: res })
 		} catch (e) {
 			console.log('Cannot remove message', e.message || e)
 			dispatch({ type: USER_DELETING_MESSAGE_FAIL })
+		}
+	}
+}
+
+export const editMessage = (id, editedMessage) => {
+	return async (dispatch) => {
+		dispatch({ type: USER_EDITING_MESSAGE })
+		try {
+			const req = await fetch(`${SERVER_BASE_URL}/api/chat/editmessage`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'x-auth-token': localStorage.getItem('user'),
+				},
+				body: JSON.stringify({ id, editedMessage }),
+			})
+
+			const res = await req.json()
+			console.log('res', res)
+			dispatch({ type: USER_EDITING_MESSAGE_SUCCESS, payload: res })
+		} catch (e) {
+			console.log('Cannot edit message', e.messae || e)
+			dispatch({ type: USER_EDITING_MESSAGE_FAIL })
 		}
 	}
 }

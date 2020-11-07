@@ -49,10 +49,16 @@ io.on('connection', (client) => {
 				lst,
 				room: user.room,
 				time,
+				system: true,
 			})
 		} else {
 			io.emit('send_list_of_users', listusers[user.room - 1])
 		}
+	})
+
+	client.on('user_edited_message', ({ username, id, message }) => {
+		console.log(`${username} edited message with id ${id}`)
+		io.emit('user_edited_message_processed', { username, id, message })
 	})
 
 	client.on('user_delete_message', ({ username, id }) => {

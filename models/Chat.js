@@ -19,6 +19,14 @@ const chatSchema = mongoose.Schema({
 					type: String,
 					required: true,
 				},
+				edited: {
+					type: Boolean,
+					required: true,
+				},
+				system: {
+					type: Boolean,
+					required: false,
+				},
 			},
 		],
 	},

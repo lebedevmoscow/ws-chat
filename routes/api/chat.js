@@ -19,6 +19,8 @@ router.post('/newmessage', auth, async (req, res) => {
 					user: username,
 					time,
 					message,
+					edited: false,
+					system: false,
 				},
 			},
 		})
@@ -54,6 +56,23 @@ router.post('/deletemessage', auth, async (req, res) => {
 	} catch (e) {
 		console.log('Cannot delete message', e.message || e)
 		return res.status(400).json({ msg: 'Cannot delete message' })
+	}
+})
+
+router.post('/editmessage', auth, async (req, res) => {
+	const id = req.body.id
+	const editedMessage = req.body.editedMessage
+	try {
+		const result = await Chat.findOne({ _id: id })
+		if (result) {
+			result.messages.message[0].message = editedMessage
+			result.messages.message[0].edited = true
+			await result.save()
+			return res.status(400).json({ result })
+		}
+	} catch (e) {
+		console.log('Cannot edit message', e.message || e)
+		return res.status(400).json({ msg: 'Cannot edit message' })
 	}
 })
 
