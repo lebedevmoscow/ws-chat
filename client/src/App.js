@@ -41,7 +41,17 @@ const App = () => {
 				<Route exact path='/register' component={RegisterModal} />
 				<Route exact path='/login' component={LoginModal} />
 				<Route exact path='/chat' component={Chat} />
-				<Route exact path='/' component={WelcomeWindow} />
+				<Route
+					exact
+					path='/'
+					render={() => {
+						return localStorage.getItem('user') ? (
+							<WelcomeWindow />
+						) : (
+							<Redirect to='/register' />
+						)
+					}}
+				/>
 				<Route component={error404} />
 			</Switch>
 		</>

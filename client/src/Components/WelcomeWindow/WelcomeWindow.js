@@ -63,7 +63,8 @@ const WelcomeWindow = ({ changeUserRoom }) => {
 	}
 
 	if (redirectLogout) {
-		return <Redirect to='/' />
+		console.log('redirecting logout')
+		return <Redirect to='/' push />
 	}
 
 	if (!localStorage.getItem('user') && !localStorage.getItem('registered')) {
@@ -87,6 +88,7 @@ const WelcomeWindow = ({ changeUserRoom }) => {
 					<div className='form-control'>
 						<label>Choise room where you want to join</label>
 						<select
+							className='select'
 							name='room'
 							id='room'
 							onChange={onChangeHandler}

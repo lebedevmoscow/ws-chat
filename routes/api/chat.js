@@ -22,11 +22,13 @@ router.post('/newmessage', auth, async (req, res) => {
 				},
 			},
 		})
+		const id = chat._id
 		await chat.save()
 
-		return res
-			.status(200)
-			.json({ msg: 'OK', response: { user: username, time, message } })
+		return res.status(200).json({
+			msg: 'OK',
+			response: { user: username, time, message, id },
+		})
 	} catch (e) {
 		console.log('Cannot update Chat Model', e.message || e)
 		return res.status(400).json({ msg: e.message || e })
@@ -40,7 +42,18 @@ router.post('/loadhistory', auth, async (req, res) => {
 		return res.status(200).json({ messages: result })
 	} catch (e) {
 		console.log('Cannot load history', e.message || e)
-		return res.status(200).json({ msg: 'Cannot load history' })
+		return res.status(400).json({ msg: 'Cannot load history' })
+	}
+})
+
+router.post('/deletemessage', auth, async (req, res) => {
+	const id = req.body.id
+	try {
+		const result = await Chat.deleteOne({ _id: id })
+		return res.status(200).json({ message: result })
+	} catch (e) {
+		console.log('Cannot delete message', e.message || e)
+		return res.status(400).json({ msg: 'Cannot delete message' })
 	}
 })
 

@@ -19,13 +19,6 @@ ReactDOM.render(
 		<Router>
 			<Provider store={store}>
 				<App />
-				{/* <Switch>
-					<Route exact path='/register' component={RegisterModal} />
-					<Route exact path='/login' component={LoginModal} />
-					<Route exact path='/chat' component={Chat} />
-					<Route exact path='/' component={WelcomeWindow} />
-					<Route component={error404} />
-				</Switch> */}
 			</Provider>
 		</Router>
 	</React.StrictMode>,

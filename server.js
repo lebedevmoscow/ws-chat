@@ -55,13 +55,19 @@ io.on('connection', (client) => {
 		}
 	})
 
-	client.on('user_send_mesage', ({ msg, time, username, room }) => {
+	client.on('user_delete_message', ({ username, id }) => {
+		console.log(`${username} deleting message with id ${id}`)
+		io.emit('user_delete_message_processed', { username, id })
+	})
+
+	client.on('user_send_mesage', ({ msg, time, username, room, id }) => {
 		console.log('id sent message', client.id)
 		io.emit('user_send_message_processed', {
 			msg,
 			time,
 			username,
 			room,
+			id,
 		})
 	})
 
